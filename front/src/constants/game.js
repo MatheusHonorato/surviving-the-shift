@@ -1,5 +1,29 @@
 export const TIMER_ENVIRONMENT_NAMES = new Set(['cronômetro', 'cronometro', 'timer'])
 
+/**
+ * Passos que devem ser ignorados no componente de progresso do paciente atual
+ * Estes passos não serão exibidos na barra de progresso dos steps
+ * Suporta bilíngue: inclui versões em português e inglês
+ */
+export const PROGRESS_IGNORED_STEPS = new Set([
+  // Português
+  'Procedimentos',
+  'Medicações',
+  'Anamnese',
+  'Exames laboratoriais',
+  'Exames de imagem',
+  'POCUS',
+  'Exame físico',
+  // Inglês (traduções correspondentes do TranslationHelper)
+  'Procedures',
+  'Medications',
+  'Anamnesis',
+  'Laboratory tests',
+  'Imaging exams',
+  'POCUS',
+  'Physical examination',
+])
+
 export const ENVIRONMENT_SUCCESS_VALUES = {
   'ritmo cardíaco': { pt: 'Sinusal', en: 'Sinus' },
   'cardiac rhythm': { pt: 'Sinusal', en: 'Sinus' },

@@ -56,13 +56,21 @@ class PersonalReportService
             ? round(($correctAnswers / $totalAnswers) * 100, 2)
             : 0.0;
 
-        $timeStats = DB::table('answers')
-            ->where('user_id', $userId)
-            ->whereNotNull('started_at')
-            ->whereNotNull('answered_at')
+        $timeStats = DB::table('answers as a1')
+            ->where('a1.user_id', $userId)
+            ->whereNotNull('a1.started_at')
+            ->whereNotNull('a1.answered_at')
+            ->whereRaw('a1.id = (
+                SELECT MAX(a2.id)
+                FROM answers as a2
+                WHERE a2.user_id = a1.user_id
+                AND a2.step_id = a1.step_id
+                AND a2.started_at IS NOT NULL
+                AND a2.answered_at IS NOT NULL
+            )')
             ->selectRaw('
-                SUM(TIMESTAMPDIFF(SECOND, started_at, answered_at)) as total_seconds,
-                AVG(TIMESTAMPDIFF(SECOND, started_at, answered_at)) as avg_seconds
+                SUM(TIMESTAMPDIFF(SECOND, a1.started_at, a1.answered_at)) as total_seconds,
+                AVG(TIMESTAMPDIFF(SECOND, a1.started_at, a1.answered_at)) as avg_seconds
             ')
             ->first();
 

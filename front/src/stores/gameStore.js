@@ -31,6 +31,7 @@ export const useGameStore = defineStore('game', () => {
   const isTimeoutModal = ref(false)
   const currentStep = ref(null)
   const currentStepLoading = ref(false)
+  const loadingNextPatient = ref(false)
   const shouldCloseStepModal = ref(false)
 
   const timeRemaining = ref(0)
@@ -283,7 +284,8 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  const clearPatientState = () => {
+  // Limpa apenas o estado do paciente, mantendo gameStarted
+  const clearPatientStateOnly = () => {
     currentStepIndex.value = 0
     selectedSteps.value = []
     feedback.value = ''
@@ -292,13 +294,19 @@ export const useGameStore = defineStore('game', () => {
     showVideoModal.value = false
     errorMessage.value = ''
     isTimeoutModal.value = false
-    gameStarted.value = false
     timerStarted.value = false
+  }
+
+  // Limpa todo o estado, incluindo gameStarted (usado apenas em resetGame)
+  const clearPatientState = () => {
+    clearPatientStateOnly()
+    gameStarted.value = false
   }
 
   const nextPatient = async () => {
     try {
       if (currentPatientIndex.value < patients.value.length - 1) {
+        loadingNextPatient.value = true
         stopTimer()
         currentPatientIndex.value++
         await resetCurrentPatient()
@@ -309,13 +317,15 @@ export const useGameStore = defineStore('game', () => {
       }
     } catch (err) {
       handleError(err, 'nextPatient')
+    } finally {
+      loadingNextPatient.value = false
     }
   }
 
   const resetCurrentPatient = async () => {
     try {
       resetTimer()
-      clearPatientState()
+      clearPatientStateOnly() // Não reseta gameStarted ao mudar de paciente
       await loadCurrentStep()
     } catch (err) {
       handleError(err, 'resetCurrentPatient')
@@ -329,7 +339,7 @@ export const useGameStore = defineStore('game', () => {
     loadingPromise = (async () => {
       currentStepLoading.value = true
       try {
-        clearPatientState()
+        clearPatientStateOnly() // Não reseta gameStarted ao resetar step
         await loadCurrentStep()
       } catch (stepErr) {
         handleError(stepErr, 'resetCurrentStep')
@@ -411,6 +421,7 @@ export const useGameStore = defineStore('game', () => {
     isTimeoutModal,
     currentStep,
     currentStepLoading,
+    loadingNextPatient,
     timeRemaining,
     formattedTimeRemaining,
     isTimeCritical,

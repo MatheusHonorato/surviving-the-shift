@@ -63,8 +63,6 @@ class AnswerService
         $attempt = $patientData['attempt'];
 
         return DB::transaction(function () use ($userId, $stepId, $attempt, $patientId) {
-            // Idempotente: se existir registro sem answered_at, não duplica; apenas garante started_at
-            // Filtra também por attempt para evitar conflitos entre tentativas diferentes
             $answer = Answer::where('user_id', $userId)
                 ->where('step_id', $stepId)
                 ->where('attempt', $attempt)
@@ -81,7 +79,6 @@ class AnswerService
                     'started_at' => now(),
                 ]);
             } else {
-                // Atualiza attempt se ainda não estiver definido
                 if (! $answer->attempt) {
                     $answer->attempt = $attempt;
                 }
@@ -102,7 +99,6 @@ class AnswerService
         $isCorrect = $this->isAlternativeCorrect($stepId, $alternativeId);
 
         return DB::transaction(function () use ($userId, $stepId, $alternativeId, $isCorrect) {
-            // Busca o registro iniciado (com started_at mas sem answered_at) para usar o mesmo attempt
             $answer = Answer::where('user_id', $userId)
                 ->where('step_id', $stepId)
                 ->whereNotNull('started_at')
@@ -111,7 +107,6 @@ class AnswerService
                 ->first();
 
             if (empty($answer)) {
-                // Se não encontrou registro iniciado, calcula patient_id e attempt
                 $patientData = $this->getPatientIdAndCurrentAttempt($userId, $stepId);
                 $patientId = $patientData['patient_id'];
                 $attempt = $patientData['attempt'];
@@ -129,7 +124,6 @@ class AnswerService
             $answer->alternative_id = $alternativeId ?? null;
             $answer->is_correct = $isCorrect;
             if (! $answer->started_at) {
-                // fallback: considera start no exato momento anterior à resposta
                 $answer->started_at = now();
             }
             $answer->answered_at = now();

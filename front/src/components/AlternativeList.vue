@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex items-center justify-end mb-2">
-      <span v-if="alternatives && alternatives.length > 0" class="text-xs text-slate-500">
+      <span v-if="alternatives && alternatives.length > 0" class="text-xs text-slate-500 hidden md:block">
         {{ alternatives.length }} {{ t({ pt: 'alternativas', en: 'alternatives' }) }}
       </span>
     </div>
@@ -15,18 +15,10 @@
         :key="alternative.id"
         :disabled="disabled || isSelecting"
         :aria-label="t(alternative.text)"
-        class="text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-400 hover:bg-blue-50 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-200 disabled:hover:bg-transparent group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+        class="cursor-pointer text-left p-2.5 rounded-lg border border-slate-200 hover:border-blue-400 hover:bg-blue-50 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-200 disabled:hover:bg-transparent group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
         @click="$emit('select', alternative)"
       >
         <div class="flex items-start gap-2">
-          <div
-            class="w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 transition-colors"
-            :class="
-              isSelecting
-                ? 'border-blue-400 bg-blue-100'
-                : 'border-slate-300 group-hover:border-blue-500 group-hover:bg-blue-500'
-            "
-          ></div>
           <span class="text-xs text-slate-700 group-hover:text-blue-700 leading-snug">
             {{ t(alternative.text) }}
           </span>

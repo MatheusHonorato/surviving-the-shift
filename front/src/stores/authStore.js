@@ -68,7 +68,6 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       if (token.value) await api.post('/auth/logout')
     } catch {
-      // Ignore logout errors
     } finally {
       setToken('')
       setUser(null)
@@ -87,6 +86,8 @@ export const useAuthStore = defineStore('auth', () => {
     loading,
     error,
     isAuthenticated,
+    setToken,
+    setUser,
     login,
     register,
     logout,

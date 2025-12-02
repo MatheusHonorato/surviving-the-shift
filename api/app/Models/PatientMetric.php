@@ -46,13 +46,10 @@ class PatientMetric extends Model
 
     public static function updateMetricsForPatient(int $patientId): void
     {
-        // Total de steps do patient
         $totalSteps = DB::table('steps')
             ->where('patient_id', $patientId)
             ->count();
 
-        // Usuários que completaram: verifica se há pelo menos uma tentativa onde o usuário
-        // completou todos os steps corretamente na mesma tentativa
         $usersCompleted = DB::table('answers as ua')
             ->select('ua.user_id')
             ->where('ua.patient_id', $patientId)
@@ -63,7 +60,6 @@ class PatientMetric extends Model
             ->unique()
             ->count();
 
-        // Usuários que tentaram (responderam ao menos um step)
         $usersAttempted = DB::table('answers as ua')
             ->where('ua.patient_id', $patientId)
             ->whereNotNull('ua.answered_at')
@@ -73,7 +69,6 @@ class PatientMetric extends Model
 
         $usersAttemptedNotCompleted = max(0, $usersAttempted - $usersCompleted);
 
-        // Tempo médio por passo (em segundos) - média das médias por step
         $avgStepTime = DB::table('answers as ua')
             ->select('ua.step_id')
             ->where('ua.patient_id', $patientId)
@@ -86,7 +81,6 @@ class PatientMetric extends Model
 
         $avgStepTime = $avgStepTime !== null ? (float) $avgStepTime : 0.0;
 
-        // Taxa média de acerto
         $correctAgg = DB::table('answers as ua')
             ->where('ua.patient_id', $patientId)
             ->whereNotNull('ua.answered_at')
@@ -101,7 +95,6 @@ class PatientMetric extends Model
             $avgCorrectRate = (float) $correctAgg->correct_answers / (float) $correctAgg->total_answers;
         }
 
-        // Passo mais difícil: step com maior número de erros (independente da tentativa/attempt)
         $stepIncorrectCounts = DB::table('answers as ua')
             ->where('ua.patient_id', $patientId)
             ->whereNotNull('ua.answered_at')
@@ -119,12 +112,10 @@ class PatientMetric extends Model
         $hardestStepCorrectRate = null;
 
         if ($stepIncorrectCounts->isNotEmpty()) {
-            // Encontra o step com maior número de erros (incorrect_count)
             $maxIncorrectCount = $stepIncorrectCounts->max(function ($step) {
                 return (int) $step->incorrect_count;
             });
 
-            // Filtra steps com esse número de erros e escolhe o com mais tentativas totais em caso de empate
             $hardestStep = $stepIncorrectCounts
                 ->filter(function ($step) use ($maxIncorrectCount) {
                     return (int) $step->incorrect_count === $maxIncorrectCount;
@@ -150,7 +141,6 @@ class PatientMetric extends Model
             }
         }
 
-        // Atualiza ou cria o registro
         self::updateOrCreate(
             ['patient_id' => $patientId],
             [

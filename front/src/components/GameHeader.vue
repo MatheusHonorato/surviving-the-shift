@@ -116,7 +116,7 @@ const menuItems = computed(() => {
       key: 'report',
       type: 'link',
       to: '/personal-report',
-      label: { pt: 'Meu Relatório', en: 'My Report' },
+      label: { pt: 'Relatório', en: 'Report' },
       variant: 'primary',
     })
   }

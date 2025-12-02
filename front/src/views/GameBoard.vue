@@ -66,11 +66,22 @@
       </div>
     </div>
 
+    <LoadingState
+      v-else-if="gameStore.loadingNextPatient"
+      :title="t({ pt: 'Carregando próximo paciente...', en: 'Loading next patient...' })"
+      :description="
+        t({
+          pt: 'Preparando a próxima situação',
+          en: 'Preparing the next situation',
+        })
+      "
+    />
+
     <div v-else class="min-h-screen">
       <GameHeader :progress-percentage="gameStore.progressPercentage">
         <template #menu-items>
           <HeaderMenuItem type="link" to="/personal-report" variant="primary">
-            {{ lang === 'pt' ? 'Meu Relatório' : 'My Report' }}
+            {{ lang === 'pt' ? 'Relatório' : 'Report' }}
           </HeaderMenuItem>
           <HeaderMenuItem type="button" variant="default" @click="handleLogout">
             {{ lang === 'pt' ? 'Sair' : 'Logout' }}
@@ -79,68 +90,6 @@
       </GameHeader>
 
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <section
-          v-if="gameStore.selectedSteps && gameStore.selectedSteps.length > 0"
-          class="bg-white/80 backdrop-blur-sm rounded-xl shadow px-3 sm:px-4 py-3 mb-5 border border-slate-100"
-        >
-          <div class="flex items-center justify-between mb-2">
-            <h2
-              class="text-xs font-semibold text-slate-600 flex items-center uppercase tracking-wide"
-            >
-              <IconClipboard class="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
-              {{ lang === 'pt' ? 'Evolução dos passos' : 'Steps progression' }}
-            </h2>
-            <span class="text-[11px] text-slate-400">
-              {{ gameStore.currentStepIndex }} / {{ gameStore.selectedSteps.length }}
-            </span>
-          </div>
-
-          <div class="overflow-x-auto scrollbar-thin">
-            <div class="flex items-center gap-1.5 min-w-max">
-              <div
-                v-for="(step, index) in gameStore.selectedSteps"
-                :key="index"
-                class="flex items-center flex-shrink-0"
-              >
-                <div class="flex flex-col items-center min-w-[72px] sm:min-w-[80px]">
-                  <div
-                    class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold transition-all"
-                    :class="{
-                      'bg-green-500 text-white': index < gameStore.currentStepIndex,
-                      'bg-blue-500 text-white ring-1 ring-blue-300':
-                        index === gameStore.currentStepIndex,
-                      'bg-slate-200 text-slate-400': index > gameStore.currentStepIndex,
-                    }"
-                  >
-                    <span v-if="index < gameStore.currentStepIndex">
-                      <IconCheck class="w-4 h-4" />
-                    </span>
-                    <span v-else>
-                      {{ index + 1 }}
-                    </span>
-                  </div>
-                  <p
-                    class="mt-1 text-[11px] text-center px-1 leading-tight max-w-[70px] sm:max-w-[80px] truncate"
-                    :class="{
-                      'text-green-600 font-medium': index < gameStore.currentStepIndex,
-                      'text-blue-600 font-semibold': index === gameStore.currentStepIndex,
-                      'text-slate-400': index > gameStore.currentStepIndex,
-                    }"
-                  >
-                    {{ t(step.text) }}
-                  </p>
-                </div>
-                <div v-if="index < gameStore.selectedSteps.length - 1" class="mx-1">
-                  <div
-                    class="h-px w-8 transition-colors"
-                    :class="index < gameStore.currentStepIndex ? 'bg-green-400' : 'bg-slate-200'"
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <div
           v-if="!hasStarted"
           class="mb-8 pb-12 min-h-[calc(100vh-96px)] flex items-center justify-center"
@@ -194,9 +143,68 @@
           </div>
         </div>
 
-        <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
+        <div v-else class="flex flex-col sm:grid sm:grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
+          <section
+            v-if="gameStore.selectedSteps && gameStore.selectedSteps.length > 0"
+            class="bg-white/80 backdrop-blur-sm rounded-xl shadow px-3 sm:px-4 py-3 border border-slate-100 order-2 sm:order-1 lg:col-span-3"
+          >
+            <div class="flex items-center justify-start mb-2">
+              <h2
+                class="text-xs font-semibold text-slate-600 flex items-center uppercase tracking-wide"
+              >
+                <IconClipboard class="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
+                {{ lang === 'pt' ? 'Passos executados' : 'Executed steps' }}
+              </h2>
+            </div>
+
+            <div ref="stepsScrollContainer" class="overflow-x-auto scrollbar-thin">
+              <div class="flex items-start gap-1.5 min-w-max">
+                <div
+                  v-for="(step, index) in filteredSelectedSteps"
+                  :key="index"
+                  class="flex items-center flex-shrink-0 h-full"
+                >
+                  <div class="flex flex-col items-center justify-start min-w-[72px] sm:min-w-[80px] h-[80px]">
+                    <div
+                      class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold transition-all"
+                      :class="{
+                        'bg-green-500 text-white': index < filteredCurrentStepIndex,
+                        'bg-blue-500 text-white ring-1 ring-blue-300':
+                          index === filteredCurrentStepIndex,
+                        'bg-slate-200 text-slate-400': index > filteredCurrentStepIndex,
+                      }"
+                    >
+                      <span v-if="index < filteredCurrentStepIndex">
+                        <IconCheck class="w-4 h-4" />
+                      </span>
+                      <span v-else>
+                        {{ index + 1 }}
+                      </span>
+                    </div>
+                    <p
+                      class="mt-1 text-[11px] text-center px-1 leading-tight max-w-[70px] sm:max-w-[80px] break-words flex-1 flex items-start justify-center"
+                      :class="{
+                        'text-green-600 font-medium': index < filteredCurrentStepIndex,
+                        'text-blue-600 font-semibold': index === filteredCurrentStepIndex,
+                        'text-slate-400': index > filteredCurrentStepIndex,
+                      }"
+                    >
+                      {{ t(step.text) }}
+                    </p>
+                  </div>
+                  <div v-if="index < filteredSelectedSteps.length - 1" class="mx-1">
+                    <div
+                      class="h-px w-8 transition-colors"
+                      :class="index < filteredCurrentStepIndex ? 'bg-green-400' : 'bg-slate-200'"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <div
-            class="bg-white rounded-2xl shadow-lg overflow-hidden lg:col-span-1 h-full flex flex-col"
+            class="bg-white rounded-2xl shadow-lg overflow-hidden lg:col-span-1 h-full flex flex-col order-1 sm:order-2"
           >
             <div class="relative h-40 sm:h-44">
               <img
@@ -225,7 +233,7 @@
             </div>
           </div>
 
-          <div class="bg-white rounded-2xl shadow-lg p-6 lg:col-span-2 h-full flex flex-col">
+          <div class="bg-white rounded-2xl shadow-lg p-6 lg:col-span-2 h-full flex flex-col order-3 sm:order-3">
             <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">
               <IconClipboard class="w-5 h-5 mr-2 text-indigo-500" />
               {{ lang === 'pt' ? 'Passos' : 'Steps' }}
@@ -237,6 +245,14 @@
       </main>
     </div>
 
+    <!-- Timer flutuante apenas em mobile -->
+    <div
+      v-if="hasStarted && gameStore.timeRemaining > 0"
+      class="fixed top-4 left-4 z-50 sm:hidden"
+    >
+      <TimerDisplay :time-remaining="gameStore.timeRemaining" />
+    </div>
+
     <PatientProgressBar
       v-if="hasStarted && gameStore.patients && gameStore.patients.length > 0"
       :total="gameStore.patients.length"
@@ -246,7 +262,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, defineAsyncComponent } from 'vue'
+import { onMounted, computed, watch, nextTick, ref, defineAsyncComponent } from 'vue'
 import { useGameStore } from '../stores/gameStore.js'
 import { useLang } from '../composables/useLang'
 import { useAuth } from '../composables/useAuth'
@@ -260,9 +276,10 @@ import IconClipboard from '../icons/IconClipboard.vue'
 import IconCheck from '../icons/IconCheck.vue'
 import IconPlay from '../icons/IconPlay.vue'
 import IconDocument from '../icons/IconDocument.vue'
-import { TIMER_ENVIRONMENT_NAMES } from '../constants/game.js'
+import TimerDisplay from '../components/TimerDisplay.vue'
+import { TIMER_ENVIRONMENT_NAMES, PROGRESS_IGNORED_STEPS } from '../constants/game.js'
 import { MESSAGES } from '../constants/messages.js'
-import { getTextLowercase } from '../utils/textHelpers.js'
+import { getText, getTextLowercase } from '../utils/textHelpers.js'
 
 const LoadingState = defineAsyncComponent(() => import('../components/LoadingState.vue'))
 const ErrorState = defineAsyncComponent(() => import('../components/ErrorState.vue'))
@@ -276,6 +293,8 @@ const gameStore = useGameStore()
 const { handleLogout } = useAuth()
 const { t, lang } = useLang()
 
+const stepsScrollContainer = ref(null)
+
 const hasStarted = computed(() => gameStore.gameStarted)
 
 const filteredEnvironments = computed(() => {
@@ -286,6 +305,51 @@ const filteredEnvironments = computed(() => {
     const name = getTextLowercase(env.name, lang.value)
     return !TIMER_ENVIRONMENT_NAMES.has(name)
   })
+})
+
+const filteredSelectedSteps = computed(() => {
+  const steps = gameStore.selectedSteps
+  if (!Array.isArray(steps)) return []
+  return steps.filter((step) => {
+    if (!step?.text) return true
+    
+    const stepTextPt = getText(step.text, 'pt', '').trim().toLowerCase()
+    const stepTextEn = getText(step.text, 'en', '').trim().toLowerCase()
+    
+    const isIgnored = Array.from(PROGRESS_IGNORED_STEPS).some(
+      (ignoredStep) => {
+        const ignoredStepLower = ignoredStep.trim().toLowerCase()
+        return ignoredStepLower === stepTextPt || ignoredStepLower === stepTextEn
+      }
+    )
+    return !isIgnored
+  })
+})
+
+const filteredCurrentStepIndex = computed(() => {
+  const steps = gameStore.selectedSteps
+  const currentIndex = gameStore.currentStepIndex
+  if (!Array.isArray(steps) || currentIndex < 0) return 0
+  
+  let filteredIndex = 0
+  for (let i = 0; i < currentIndex && i < steps.length; i++) {
+    const step = steps[i]
+    if (step?.text) {
+      const stepTextPt = getText(step.text, 'pt', '').trim().toLowerCase()
+      const stepTextEn = getText(step.text, 'en', '').trim().toLowerCase()
+      
+      const isIgnored = Array.from(PROGRESS_IGNORED_STEPS).some(
+        (ignoredStep) => {
+          const ignoredStepLower = ignoredStep.trim().toLowerCase()
+          return ignoredStepLower === stepTextPt || ignoredStepLower === stepTextEn
+        }
+      )
+      if (!isIgnored) {
+        filteredIndex++
+      }
+    }
+  }
+  return filteredIndex
 })
 
 const openPatientModal = async () => {
@@ -310,6 +374,21 @@ const handleVideoModalClose = async () => {
 const handleVideoModalRetry = async () => {
   await gameStore.resetGame()
 }
+
+// Scroll automático para o final quando novos steps forem adicionados
+watch(
+  [filteredSelectedSteps, filteredCurrentStepIndex],
+  () => {
+    nextTick(() => {
+      if (stepsScrollContainer.value) {
+        // Scroll para o final (direita) do container horizontal
+        stepsScrollContainer.value.scrollLeft =
+          stepsScrollContainer.value.scrollWidth - stepsScrollContainer.value.clientWidth
+      }
+    })
+  },
+  { deep: true }
+)
 
 onMounted(() => {
   gameStore.initializeGame()

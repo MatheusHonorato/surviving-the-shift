@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { translateError } from './errorHelpers.js'
 import { STORAGE_KEYS } from '../constants/storage.js'
+import { useAuthStore } from '../stores/authStore.js'
 
 const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost',
   TIMEOUT: 10000,
   DEFAULT_PER_PAGE: 100,
 }
@@ -32,6 +33,19 @@ api.interceptors.response.use(
     }
     if (error.response) {
       const { status, data } = error.response
+
+      if (status === 401) {
+        const authStore = useAuthStore()
+        authStore.setToken('')
+        authStore.setUser(null)
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+        
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          window.location.href = '/login'
+        }
+        
+        return Promise.reject(new Error(translateError('unauthorized')))
+      }
 
       if (status === 422 && data?.errors) {
         const firstField = Object.keys(data.errors)[0]
@@ -138,7 +152,7 @@ export const answersApi = {
 export const dashboardApi = {
   async getDashboard() {
     const response = await api.get('/dashboard')
-    return extractData(response.data)
+    return response.data?.data || { patients: [], users: null }
   },
 }
 

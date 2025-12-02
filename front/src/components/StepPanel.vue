@@ -4,7 +4,10 @@
       v-if="gameStore.timeRemaining > 0"
       class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4"
     >
-      <TimerDisplay :time-remaining="gameStore.timeRemaining" />
+      <!-- Timer oculto em mobile, visível em desktop -->
+      <div class="hidden sm:block">
+        <TimerDisplay :time-remaining="gameStore.timeRemaining" />
+      </div>
 
       <p
         v-if="!gameStore.patientCompleted"

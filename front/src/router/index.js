@@ -61,7 +61,7 @@ const router = createRouter({
       name: ROUTE_NAMES.PERSONAL_REPORT,
       component: () => import('../views/PersonalReportView.vue'),
       meta: {
-        title: { pt: 'Meu Relatório', en: 'My Report' },
+        title: { pt: 'Relatório', en: 'Report' },
         requiresAuth: true,
       },
     },
