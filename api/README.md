@@ -9,6 +9,8 @@ RESTful API built with Laravel 12 for simulating clinical cases in a hospital en
 -   **MySQL 8.0** - Database
 -   **Laravel Sanctum 4.0** - Token-based authentication
 -   **Laravel Sail 1.41** - Docker environment for development
+-   **Laravel Pint 1.24** - Code style fixer
+-   **Pest** - Testing framework
 
 ### Requirements
 
@@ -118,11 +120,17 @@ The API will be available at `http://localhost:8000`
 # Full development environment (server, queue, logs, vite)
 composer dev
 
-# Run tests
+# Run tests with Pest
 composer test
+# or
+./vendor/bin/sail artisan test
+# or
+./vendor/bin/sail pest
 
-# Format code
+# Format code with Laravel Pint
 ./vendor/bin/sail pint
+# or format specific files
+./vendor/bin/sail pint app/Services
 ```
 
 ---
