@@ -291,7 +291,7 @@
                     {{ t({ pt: 'Tempo', en: 'Time' }) }}
                   </th>
                   <th class="px-4 py-3 text-center font-semibold text-slate-700">
-                    {{ t({ pt: 'Data', en: 'Date' }) }}
+                    {{ t({ pt: 'Momento', en: 'Moment' }) }}
                   </th>
                 </tr>
               </thead>
@@ -432,24 +432,20 @@ const sortedAttempts = computed(() => {
   if (!Array.isArray(attempts)) return []
 
   return [...attempts].sort((a, b) => {
-    // Ordenar por data (mais recente primeiro) - ordem decrescente
-    const aDate = a?.started_at ? new Date(a.started_at).getTime() : 0
-    const bDate = b?.started_at ? new Date(b.started_at).getTime() : 0
-    
-    // Se as datas forem diferentes, ordenar por data (decrescente)
-    if (aDate !== bDate) {
-      return bDate - aDate // Decrescente: mais recente primeiro
-    }
-    
-    // Se as datas forem iguais, ordenar por tentativa (decrescente)
-    const aAttempt = Number(a?.attempt ?? 0)
-    const bAttempt = Number(b?.attempt ?? 0)
-    if (aAttempt !== bAttempt) return bAttempt - aAttempt
-    
-    // Por último, ordenar por paciente (decrescente)
+    // Ordenar primeiro por paciente (crescente)
     const aPatient = Number(a?.patient_id ?? 0)
     const bPatient = Number(b?.patient_id ?? 0)
-    return bPatient - aPatient
+    if (aPatient !== bPatient) return aPatient - bPatient
+    
+    // Se os pacientes forem iguais, ordenar por tentativa (crescente)
+    const aAttempt = Number(a?.attempt ?? 0)
+    const bAttempt = Number(b?.attempt ?? 0)
+    if (aAttempt !== bAttempt) return aAttempt - bAttempt
+    
+    // Por último, ordenar por data (decrescente: mais recente primeiro)
+    const aDate = a?.started_at ? new Date(a.started_at).getTime() : 0
+    const bDate = b?.started_at ? new Date(b.started_at).getTime() : 0
+    return bDate - aDate
   })
 })
 
@@ -563,7 +559,7 @@ const accuracyOverAttempts = computed(() => {
   })
 
   return Array.from(groups.entries())
-    .sort(([a], [b]) => b - a) // Ordem decrescente: tentativas mais recentes primeiro
+    .sort(([a], [b]) => a - b) // Ordem crescente: tentativas ordenadas por número
     .map(([attemptNumber, agg], index) => {
       const completed = agg.completed
       const percent =
