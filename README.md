@@ -17,6 +17,7 @@ Educational web application for simulating clinical cases in a hospital environm
 ## 🛠 Tech Stack
 
 ### Frontend
+
 - **Vue.js 3.5** - Reactive JavaScript framework
 - **Pinia** - State management
 - **Tailwind CSS** - Utility-first styling
@@ -24,6 +25,7 @@ Educational web application for simulating clinical cases in a hospital environm
 - **Axios** - HTTP client
 
 ### Backend
+
 - **Laravel 12** - PHP framework
 - **MySQL 8.0** - Relational database
 - **Laravel Sanctum** - Token-based authentication
@@ -88,28 +90,31 @@ The project follows a **client-server architecture** with clear separation betwe
 ### Setup Steps
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd dissertacao
    ```
 
 2. **Setup Backend (API)**
+
    ```bash
    cd api
    composer install
    cp .env.example .env
    php artisan key:generate
-   
+
    # With Docker (recommended)
    ./vendor/bin/sail up -d
    ./vendor/bin/sail artisan migrate:fresh --seed
-   
+
    # Or without Docker
    php artisan migrate:fresh --seed
    php artisan serve
    ```
 
 3. **Setup Frontend**
+
    ```bash
    cd front
    npm install
@@ -132,11 +137,13 @@ For detailed documentation on each part of the project, refer to:
 ## 🔄 Development Workflow
 
 1. **Backend Development**
+
    - API runs on Laravel Sail (Docker) or native PHP
    - Database migrations and seeders for data setup
    - Token-based authentication for API access
 
 2. **Frontend Development**
+
    - Hot-reload development server with Vite
    - State management with Pinia stores
    - API integration via Axios
@@ -166,7 +173,3 @@ The application uses **Laravel Sanctum** for API authentication:
 2. Backend returns a Bearer token
 3. Frontend includes token in `Authorization` header for protected routes
 4. API validates token on each request
-
-## 📝 License
-
-CC BY-NC-ND 4.0
