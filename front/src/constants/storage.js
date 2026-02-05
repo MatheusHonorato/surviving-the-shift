@@ -8,4 +8,4 @@ export const LANGUAGES = {
   EN: 'en',
 }
 
-export const DEFAULT_LANGUAGE = LANGUAGES.PT
+export const DEFAULT_LANGUAGE = LANGUAGES.EN
